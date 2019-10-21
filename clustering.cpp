@@ -42,8 +42,8 @@ void readBinMatrix( char* inputFile, int totalFramNumber )
   // Allocate memory for one frame
   frame = ( unsigned short * )malloc( sizeof( unsigned short )*256*256 );
 
-  // read in sequency - col, line
-  int col = 0, line = 0;
+  // read in sequency - col, row
+  int col = 0, row = 0;
 
   // last pixel TOT/energy
   int lastpixel = 0, actualpixel = 0, clustersizekeep = 0, clusterchargekeep = 0;
@@ -71,12 +71,12 @@ void readBinMatrix( char* inputFile, int totalFramNumber )
     for( int n = 0; n < npixels; n++ )
     {
       col         = ( n%256 );
-      line        = floor(n/256);
+      row         = floor(n/256);
       actualpixel = frame[ n ];
 
       if( actualpixel != 0 )
       {
-        //if( frameCounter == 2 ){ AllClustFrame -> Fill( line, col); }
+        //if( frameCounter == 2 ){ AllClustFrame -> Fill( row, col); }
 
         if( lastpixel != 0 )
         {
@@ -86,25 +86,25 @@ void readBinMatrix( char* inputFile, int totalFramNumber )
           frame[ n ] = 0;
         }
 
-        else if( pixelLabel[ col + 256 * ( line - 1 ) ] > 0  )
+        else if( pixelLabel[ col + 256 * ( row - 1 ) ] > 0  )
         {
-          pixelLabel[n]               = pixelLabel[col + 256 * ( line - 1 )];
+          pixelLabel[n]               = pixelLabel[col + 256 * ( row - 1 )];
           clusterTOT[pixelLabel[n]]  += frame[ n ];
           clusterSize[pixelLabel[n]] += 1;
           frame[ n ] = 0;
         }
 
-        else if( pixelLabel[ col - 1 + 256 * ( line - 1 ) ] > 0 )
+        else if( pixelLabel[ col - 1 + 256 * ( row - 1 ) ] > 0 )
         {
-          pixelLabel[n]               = pixelLabel[col - 1 + 256 * ( line - 1 )];
+          pixelLabel[n]               = pixelLabel[col - 1 + 256 * ( row - 1 )];
           clusterTOT[pixelLabel[n]]  += frame[ n ];
           clusterSize[pixelLabel[n]] += 1;
           frame[ n ] = 0;
         }
 
-        else if( pixelLabel[ col + 1 + 256 * ( line - 1 ) ] > 0 )
+        else if( pixelLabel[ col + 1 + 256 * ( row - 1 ) ] > 0 )
         {
-          pixelLabel[n]               = pixelLabel[col + 1 + 256 * ( line - 1 )];
+          pixelLabel[n]               = pixelLabel[col + 1 + 256 * ( row - 1 )];
           clusterTOT[pixelLabel[n]]  += frame[ n ];
           clusterSize[pixelLabel[n]] += 1;
           frame[ n ] = 0;
@@ -112,35 +112,35 @@ void readBinMatrix( char* inputFile, int totalFramNumber )
 
         else
         {
-          pixelLabel[n]               = ( col + 256 * line );
+          pixelLabel[n]               = ( col + 256 * row );
           clusterTOT[pixelLabel[n]]  += frame[ n ];
           clusterSize[pixelLabel[n]] += 1;
           frame[ n ] = 0;
         }
 
         // to treat the case when more than one condition satisfies
-        if( ( ( pixelLabel[ col + 1 + 256 * ( line - 1 ) ] > 0 ) && ( lastpixel > 0 ) )
-         && ( pixelLabel[col + 1 + 256 * ( line - 1 )] != pixelLabel[n-1] ) )
+        if( ( ( pixelLabel[ col + 1 + 256 * ( row - 1 ) ] > 0 ) && ( lastpixel > 0 ) )
+         && ( pixelLabel[col + 1 + 256 * ( row - 1 )] != pixelLabel[n-1] ) )
         {
-          clusterTOT[pixelLabel[n-1]]   += clusterTOT[pixelLabel[col + 1 + 256 * ( line - 1 )]];
-          clusterTOT.erase(pixelLabel[col + 1 + 256 * ( line - 1 )]);
+          clusterTOT[pixelLabel[n-1]]   += clusterTOT[pixelLabel[col + 1 + 256 * ( row - 1 )]];
+          clusterTOT.erase(pixelLabel[col + 1 + 256 * ( row - 1 )]);
 
-          clusterSize[pixelLabel[n-1]]  += clusterSize[pixelLabel[col + 1 + 256 * ( line - 1 )]];
-          clusterSize.erase(pixelLabel[col + 1 + 256 * ( line - 1 )]);
+          clusterSize[pixelLabel[n-1]]  += clusterSize[pixelLabel[col + 1 + 256 * ( row - 1 )]];
+          clusterSize.erase(pixelLabel[col + 1 + 256 * ( row - 1 )]);
 
-          clustersMerged[pixelLabel[n-1]] = pixelLabel[col + 1 + 256 * ( line - 1 )]; // at the ent see if the old will be created
+          clustersMerged[pixelLabel[n-1]] = pixelLabel[col + 1 + 256 * ( row - 1 )]; // at the ent see if the old will be created
         }
 
-        else if( ( ( pixelLabel[ col + 1 + 256 * ( line - 1 ) ] > 0 ) && ( pixelLabel[ col - 1 + 256 * ( line - 1 ) ] > 0 ) )
-             &&  ( pixelLabel[col + 1 + 256 * ( line - 1 )] != pixelLabel[col - 1 + 256 * ( line - 1 )] ) )
+        else if( ( ( pixelLabel[ col + 1 + 256 * ( row - 1 ) ] > 0 ) && ( pixelLabel[ col - 1 + 256 * ( row - 1 ) ] > 0 ) )
+             &&  ( pixelLabel[col + 1 + 256 * ( row - 1 )] != pixelLabel[col - 1 + 256 * ( row - 1 )] ) )
         {
-          clusterTOT[pixelLabel[col + 1 + 256 * ( line - 1 )]]  += clusterTOT[pixelLabel[col - 1 + 256 * ( line - 1 )]];
-          clusterTOT.erase(pixelLabel[col - 1 + 256 * ( line - 1 )]);
+          clusterTOT[pixelLabel[col + 1 + 256 * ( row - 1 )]]  += clusterTOT[pixelLabel[col - 1 + 256 * ( row - 1 )]];
+          clusterTOT.erase(pixelLabel[col - 1 + 256 * ( row - 1 )]);
 
-          clusterSize[pixelLabel[col + 1 + 256 * ( line - 1 )]]  += clusterSize[pixelLabel[col - 1 + 256 * ( line - 1 )]];
-          clusterSize.erase(pixelLabel[col - 1 + 256 * ( line - 1 )]);
+          clusterSize[pixelLabel[col + 1 + 256 * ( row - 1 )]]  += clusterSize[pixelLabel[col - 1 + 256 * ( row - 1 )]];
+          clusterSize.erase(pixelLabel[col - 1 + 256 * ( row - 1 )]);
 
-          clustersMerged[pixelLabel[col + 1 + 256 * ( line - 1 )]] = pixelLabel[col - 1 + 256 * ( line - 1 )]; // at the ent see if the old will be created
+          clustersMerged[pixelLabel[col + 1 + 256 * ( row - 1 )]] = pixelLabel[col - 1 + 256 * ( row - 1 )]; // at the ent see if the old will be created
         }
       }
       lastpixel  = actualpixel;
