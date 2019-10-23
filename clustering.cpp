@@ -185,6 +185,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
     pixelLabel.clear();
     clusterTOT.clear();
     clusterSize.clear();
+    clustersMerged.clear();
   }
 
   TProfile* pixelchargehistprofile = pixelchargehist -> ProfileX();
