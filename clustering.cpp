@@ -14,9 +14,9 @@
 
 #define MAX_NAME 100
 
-void readBinMatrix( char* inputFile, int totalFramNumber );
+void readBinMatrix( char* inputFile, int totalFrameNumber );
 
-void readBinMatrix( char* inputFile, int totalFramNumber )
+void readBinMatrix( char* inputFile, int totalFrameNumber )
 {
   // Open file
   FILE *file;
@@ -39,16 +39,16 @@ void readBinMatrix( char* inputFile, int totalFramNumber )
   // frame buffer
   unsigned short *frame;
 
-  // Allocate memory for one frame
+  // allocate memory for one frame
   frame = ( unsigned short * )malloc( sizeof( unsigned short )*256*256 );
 
-  // read in sequency - col, row
+  // reading in sequency
   int col = 0, row = 0;
 
   // last pixel TOT/energy
   int lastpixel = 0, actualpixel = 0, clustersizekeep = 0, clusterchargekeep = 0;
 
-  // map for pixel and a label of cluster
+  // map for pixel and cluster's label
   std::map<int, int> pixelLabel;
 
   // map for cluster and TOT
@@ -57,15 +57,15 @@ void readBinMatrix( char* inputFile, int totalFramNumber )
   // cluster size
   std::map<int, int> clusterSize;
 
-  // cluster merged
+  // clusters merged
   std::map<int, int> clustersMerged;
 
-  // total of pixels
+  // total number of pixels
   int npixels = 256*256;
 
-  for( int frameCounter = 0; frameCounter < totalFramNumber; frameCounter++ )
+  for( int frameCounter = 0; frameCounter < totalFrameNumber; frameCounter++ )
   {
-    //Read one frame from the file contents into buffer
+    //reading one frame into buffer
     fread( frame, sizeof( unsigned short )*256*256, 1, file );
 
     for( int n = 0; n < npixels; n++ )
@@ -128,7 +128,7 @@ void readBinMatrix( char* inputFile, int totalFramNumber )
           clusterSize[pixelLabel[n-1]]  += clusterSize[pixelLabel[col + 1 + 256 * ( row - 1 )]];
           clusterSize.erase(pixelLabel[col + 1 + 256 * ( row - 1 )]);
 
-          clustersMerged[pixelLabel[n-1]] = pixelLabel[col + 1 + 256 * ( row - 1 )]; // at the ent see if the old will be created
+          clustersMerged[pixelLabel[n-1]] = pixelLabel[col + 1 + 256 * ( row - 1 )];
         }
 
         else if( ( ( pixelLabel[ col + 1 + 256 * ( row - 1 ) ] > 0 ) && ( pixelLabel[ col - 1 + 256 * ( row - 1 ) ] > 0 ) )
@@ -140,7 +140,7 @@ void readBinMatrix( char* inputFile, int totalFramNumber )
           clusterSize[pixelLabel[col + 1 + 256 * ( row - 1 )]]  += clusterSize[pixelLabel[col - 1 + 256 * ( row - 1 )]];
           clusterSize.erase(pixelLabel[col - 1 + 256 * ( row - 1 )]);
 
-          clustersMerged[pixelLabel[col + 1 + 256 * ( row - 1 )]] = pixelLabel[col - 1 + 256 * ( row - 1 )]; // at the ent see if the old will be created
+          clustersMerged[pixelLabel[col + 1 + 256 * ( row - 1 )]] = pixelLabel[col - 1 + 256 * ( row - 1 )];
         }
       }
       lastpixel  = actualpixel;
