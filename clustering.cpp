@@ -137,8 +137,8 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
         if( ( ( upafter > 0 ) && ( last > 0 ) ) && ( upafter != last ) )
         {
           if( upafter > last ) {
-            correctlabel = last; wronglabel = upafter; wrongindex = col + 1 + 256 * ( row - 1 );
-          } else{ wronglabel = last; correctlabel = upafter; wrongindex = n-1; }
+            correctlabel = last; wronglabel = upafter;
+          } else{ wronglabel = last; correctlabel = upafter; }
 
           clusterTOT[correctlabel]   += clusterTOT[wronglabel];
           clusterTOT.erase( wronglabel );
@@ -152,8 +152,8 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
         else if( ( ( upafter > 0 ) && ( uplast > 0 ) ) &&  ( upafter != uplast ) )
         {
           if( upafter > uplast ) {
-            correctlabel = uplast; wronglabel = upafter; wrongindex = col + 1 + 256 * ( row - 1 );
-          } else{ wronglabel = uplast; correctlabel = upafter; wrongindex = col - 1 + 256 * ( row - 1 ); }
+            correctlabel = uplast; wronglabel = upafter;
+          } else{ wronglabel = uplast; correctlabel = upafter; }
 
           clusterTOT[correctlabel]   += clusterTOT[wronglabel];
           clusterTOT.erase( wronglabel );
