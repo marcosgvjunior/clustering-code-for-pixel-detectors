@@ -65,7 +65,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
   int npixels = 256*256;
 
   int wronglabel = 0, correctlabel = 0;
-  int uplast = 0, up = 0, upafter = 0, last = 0;
+  int uplast = 0, up = 0, upafter = 0, last = 0, inpixel = 0 ;
 
   for( int frameCounter = 0; frameCounter < totalFrameNumber; frameCounter++ )
   {
@@ -81,15 +81,15 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
       if( actualpixel != 0 )
       {
         up      = pixelLabel[ col + 256 * ( row - 1 ) ];      uplast = pixelLabel[ col - 1 + 256 * ( row - 1 ) ];
-        upafter = pixelLabel[ col + 1 + 256 * ( row - 1 ) ];  last   = pixelLabel[n-1];
+        upafter = pixelLabel[ col + 1 + 256 * ( row - 1 ) ];  last   = pixelLabel[n-1]; inpixel = pixelLabel[n] ;
 
         //if( frameCounter == 2 ){ AllClustFrame -> Fill( row, col); }
 
         if( lastpixel != 0 )
         {
           pixelLabel[n]               = last;
-          clusterTOT[pixelLabel[n]]  += frame[n];
-          clusterSize[pixelLabel[n]] += 1;
+          clusterTOT[inpixel]        += frame[n];
+          clusterSize[inpixel]       += 1;
 
           frame[n] = 0;
         }
@@ -97,8 +97,8 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
         else if( uplast > 0 )
         {
           pixelLabel[n]               = uplast;
-          clusterTOT[pixelLabel[n]]  += frame[n];
-          clusterSize[pixelLabel[n]] += 1;
+          clusterTOT[inpixel]        += frame[n];
+          clusterSize[inpixel]       += 1;
           ipixelTOT[n]                = frame[n];
 
           frame[n] = 0;
@@ -107,8 +107,8 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
         else if( up > 0  )
         {
           pixelLabel[n]               = up;
-          clusterTOT[pixelLabel[n]]  += frame[n];
-          clusterSize[pixelLabel[n]] += 1;
+          clusterTOT[inpixel]        += frame[n];
+          clusterSize[inpixel]       += 1;
           ipixelTOT[n]                = frame[n];
 
           frame[n] = 0;
@@ -117,8 +117,8 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
         else if( upafter > 0 )
         {
           pixelLabel[n]               = upafter;
-          clusterTOT[pixelLabel[n]]  += frame[n];
-          clusterSize[pixelLabel[n]] += 1;
+          clusterTOT[inpixel]        += frame[n];
+          clusterSize[inpixel]       += 1;
           ipixelTOT[n]                = frame[n];
 
           frame[n] = 0;
@@ -127,8 +127,8 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
         else
         {
           pixelLabel[n]               = ( col + 256 * row );
-          clusterTOT[pixelLabel[n]]  += frame[n];
-          clusterSize[pixelLabel[n]] += 1;
+          clusterTOT[inpixel]        += frame[n];
+          clusterSize[inpixel]       += 1;
           ipixelTOT[n]                = frame[n];
 
           frame[n] = 0;
