@@ -270,8 +270,6 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
     }
     clusterperframehisto  -> Fill( clusterTOT.size() );
 
-    // Isso é apenas um teste para ajustar o output ... o map para o TOT e size está correto. Vou ajustar isso do output ainda.
-
     std::map<int,int>::iterator it6=pixelLabel.begin();
     while ( it6 != pixelLabel.end() )
     {
