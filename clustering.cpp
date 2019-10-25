@@ -11,6 +11,7 @@
 
 // ROOT
 #include "TH2D.h"
+#include "TH1F.h"
 
 #define MAX_NAME 100
 
@@ -63,6 +64,9 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
   // total number of pixels
   int npixels = 256*256;
 
+  int wronglabel = 0, correctlabel = 0;
+  int uplast = 0, up = 0, upafter = 0, last = 0;
+
   for( int frameCounter = 0; frameCounter < totalFrameNumber; frameCounter++ )
   {
     //reading one frame into buffer
@@ -76,78 +80,95 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
 
       if( actualpixel != 0 )
       {
+        up      = pixelLabel[ col + 256 * ( row - 1 ) ];      uplast = pixelLabel[ col - 1 + 256 * ( row - 1 ) ];
+        upafter = pixelLabel[ col + 1 + 256 * ( row - 1 ) ];  last   = pixelLabel[n-1];
+
         //if( frameCounter == 2 ){ AllClustFrame -> Fill( row, col); }
 
         if( lastpixel != 0 )
         {
-          pixelLabel[n]                        = pixelLabel[n-1];
-          clusterTOT[pixelLabel[n]]           += frame[ n ];
-          clusterSize[pixelLabel[n]]          += 1;
-          frame[ n ] = 0;
+          pixelLabel[n]               = last;
+          clusterTOT[pixelLabel[n]]  += frame[n];
+          clusterSize[pixelLabel[n]] += 1;
+
+          frame[n] = 0;
         }
 
-        else if( pixelLabel[ col + 256 * ( row - 1 ) ] > 0  )
+        else if( uplast > 0 )
         {
-          pixelLabel[n]               = pixelLabel[col + 256 * ( row - 1 )];
-          clusterTOT[pixelLabel[n]]  += frame[ n ];
+          pixelLabel[n]               = uplast;
+          clusterTOT[pixelLabel[n]]  += frame[n];
           clusterSize[pixelLabel[n]] += 1;
-          frame[ n ] = 0;
+          ipixelTOT[n]                = frame[n];
+
+          frame[n] = 0;
         }
 
-        else if( pixelLabel[ col - 1 + 256 * ( row - 1 ) ] > 0 )
+        else if( up > 0  )
         {
-          pixelLabel[n]               = pixelLabel[col - 1 + 256 * ( row - 1 )];
-          clusterTOT[pixelLabel[n]]  += frame[ n ];
+          pixelLabel[n]               = up;
+          clusterTOT[pixelLabel[n]]  += frame[n];
           clusterSize[pixelLabel[n]] += 1;
-          frame[ n ] = 0;
+          ipixelTOT[n]                = frame[n];
+
+          frame[n] = 0;
         }
 
-        else if( pixelLabel[ col + 1 + 256 * ( row - 1 ) ] > 0 )
+        else if( upafter > 0 )
         {
-          pixelLabel[n]               = pixelLabel[col + 1 + 256 * ( row - 1 )];
-          clusterTOT[pixelLabel[n]]  += frame[ n ];
+          pixelLabel[n]               = upafter;
+          clusterTOT[pixelLabel[n]]  += frame[n];
           clusterSize[pixelLabel[n]] += 1;
-          frame[ n ] = 0;
+          ipixelTOT[n]                = frame[n];
+
+          frame[n] = 0;
         }
 
         else
         {
           pixelLabel[n]               = ( col + 256 * row );
-          clusterTOT[pixelLabel[n]]  += frame[ n ];
+          clusterTOT[pixelLabel[n]]  += frame[n];
           clusterSize[pixelLabel[n]] += 1;
-          frame[ n ] = 0;
+          ipixelTOT[n]                = frame[n];
+
+          frame[n] = 0;
         }
 
         // to treat the case when more than one condition satisfies
-        if( ( ( pixelLabel[ col + 1 + 256 * ( row - 1 ) ] > 0 ) && ( lastpixel > 0 ) )
-         && ( pixelLabel[col + 1 + 256 * ( row - 1 )] != pixelLabel[n-1] ) )
+        if( ( ( upafter > 0 ) && ( last > 0 ) ) && ( upafter != last ) )
         {
-          clusterTOT[pixelLabel[n-1]]   += clusterTOT[pixelLabel[col + 1 + 256 * ( row - 1 )]];
-          clusterTOT.erase(pixelLabel[col + 1 + 256 * ( row - 1 )]);
+          if( upafter > last ) {
+            correctlabel = last; wronglabel = upafter; wrongindex = col + 1 + 256 * ( row - 1 );
+          } else{ wronglabel = last; correctlabel = upafter; wrongindex = n-1; }
 
-          clusterSize[pixelLabel[n-1]]  += clusterSize[pixelLabel[col + 1 + 256 * ( row - 1 )]];
-          clusterSize.erase(pixelLabel[col + 1 + 256 * ( row - 1 )]);
+          clusterTOT[correctlabel]   += clusterTOT[wronglabel];
+          clusterTOT.erase( wronglabel );
 
-          clustersMerged[pixelLabel[n-1]] = pixelLabel[col + 1 + 256 * ( row - 1 )];
+          clusterSize[correctlabel]  += clusterSize[wronglabel];
+          clusterSize.erase( wronglabel );
+
+          clustersMerged[correctlabel] = wronglabel;
         }
 
-        else if( ( ( pixelLabel[ col + 1 + 256 * ( row - 1 ) ] > 0 ) && ( pixelLabel[ col - 1 + 256 * ( row - 1 ) ] > 0 ) )
-             &&  ( pixelLabel[col + 1 + 256 * ( row - 1 )] != pixelLabel[col - 1 + 256 * ( row - 1 )] ) )
+        else if( ( ( upafter > 0 ) && ( uplast > 0 ) ) &&  ( upafter != uplast ) )
         {
-          clusterTOT[pixelLabel[col + 1 + 256 * ( row - 1 )]]  += clusterTOT[pixelLabel[col - 1 + 256 * ( row - 1 )]];
-          clusterTOT.erase(pixelLabel[col - 1 + 256 * ( row - 1 )]);
+          if( upafter > uplast ) {
+            correctlabel = uplast; wronglabel = upafter; wrongindex = col + 1 + 256 * ( row - 1 );
+          } else{ wronglabel = uplast; correctlabel = upafter; wrongindex = col - 1 + 256 * ( row - 1 ); }
 
-          clusterSize[pixelLabel[col + 1 + 256 * ( row - 1 )]]  += clusterSize[pixelLabel[col - 1 + 256 * ( row - 1 )]];
-          clusterSize.erase(pixelLabel[col - 1 + 256 * ( row - 1 )]);
+          clusterTOT[correctlabel]   += clusterTOT[wronglabel];
+          clusterTOT.erase( wronglabel );
 
-          clustersMerged[pixelLabel[col + 1 + 256 * ( row - 1 )]] = pixelLabel[col - 1 + 256 * ( row - 1 )];
+          clusterSize[correctlabel]  += clusterSize[wronglabel];
+          clusterSize.erase( wronglabel );
+
+          clustersMerged[correctlabel] = wronglabel;
         }
       }
       lastpixel  = actualpixel;
     }
 
     std::map<int,int>::iterator it3=clustersMerged.begin();
-
     while (it3 != clustersMerged.end())
     {
       if(clusterTOT.count( it3->second ) != 0)
