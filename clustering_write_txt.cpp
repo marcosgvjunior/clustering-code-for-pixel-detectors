@@ -8,6 +8,7 @@
 #include <map>
 #include <string>
 #include <iterator>
+#include <time.h>
 
 // ROOT
 #include "TH2D.h"
@@ -15,14 +16,21 @@
 
 #define MAX_NAME 100
 
+int mapiterator( std::map<int, int> &map1, std::map<int, int> &map2 );
 void readBinMatrix( char* inputFile, int totalFrameNumber );
 
 void readBinMatrix( char* inputFile, int totalFrameNumber )
 {
+  time_t start = time(NULL);
+
   ofstream myfile;
 
+  std::string str = inputFile;
+  str = str.substr(0,str.length()-4);
+  str = str.erase(0,3);
+
   char *outfilename = new char[ MAX_NAME ];
-  sprintf( outfilename,   "clustering_%s.dat", inputFile );
+  sprintf( outfilename,   "clustering_%s.dat", str );
   myfile.open( outfilename, ios::out );
 
   myfile << Form( "frame\ti\tj\tlabel\tsize\tiTOT\tTOT\n" );
@@ -33,7 +41,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
 
   // output file
   char *filename = new char[ MAX_NAME ];
-  sprintf( filename,   "clustering_%s.root", inputFile );
+  sprintf( filename, "clustering_%s.root", str );
   TFile *clusteringHistos = new TFile( filename, "RECREATE" );
 
   // histograms
@@ -79,7 +87,8 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
   int npixels    = 256*256;
 
   int wronglabel = 0, correctlabel = 0, wrongindex = 0;
-  int uplast = 0, up = 0, upafter = 0, last = 0;
+  int uplast     = 0, up           = 0, upafter    = 0, last        = 0;
+  int correction = 1; outfirst     = 0, outsecond  = 0, outpixlabel = 0;
 
   for( int frameCounter = 0; frameCounter < totalFrameNumber; frameCounter++ )
   {
@@ -100,27 +109,25 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
 
         if( frameCounter == 0 ){ AllClustFrame -> Fill( row, col ); }
 
-        if( lastpixel != 0 )
+        if( (lastpixel != 0) && (n%256 != 0) )
         {
           pixelLabel[n]               = last;
           clusterTOT[pixelLabel[n]]  += frame[n];
           clusterSize[pixelLabel[n]] += 1;
           ipixelTOT[n]                = frame[n];
-
-          frame[n] = 0;
+          frame[n]                    = 0;
 
           clusterIndexI[n] = row;
           clusterIndexJ[n] = col;
         }
 
-        else if( uplast > 0 )
+        else if( (uplast > 0) && (n%256 != 0) )
         {
           pixelLabel[n]               = uplast;
           clusterTOT[pixelLabel[n]]  += frame[n];
           clusterSize[pixelLabel[n]] += 1;
           ipixelTOT[n]                = frame[n];
-
-          frame[n] = 0;
+          frame[n]                    = 0;
 
           clusterIndexI[n] = row;
           clusterIndexJ[n] = col;
@@ -132,21 +139,19 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
           clusterTOT[pixelLabel[n]]  += frame[n];
           clusterSize[pixelLabel[n]] += 1;
           ipixelTOT[n]                = frame[n];
-
-          frame[n] = 0;
+          frame[n]                    = 0;
 
           clusterIndexI[n] = row;
           clusterIndexJ[n] = col;
         }
 
-        else if( upafter > 0 )
+        else if( (upafter > 0) && (n%256 != 255) )
         {
           pixelLabel[n]               = upafter;
           clusterTOT[pixelLabel[n]]  += frame[n];
           clusterSize[pixelLabel[n]] += 1;
           ipixelTOT[n]                = frame[n];
-
-          frame[n] = 0;
+          frame[n]                    = 0;
 
           clusterIndexI[n] = row;
           clusterIndexJ[n] = col;
@@ -158,16 +163,14 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
           clusterTOT[pixelLabel[n]]  += frame[n];
           clusterSize[pixelLabel[n]] += 1;
           ipixelTOT[n]                = frame[n];
-
-          frame[n] = 0;
+          frame[n]                    = 0;
 
           clusterIndexI[n] = row;
           clusterIndexJ[n] = col;
         }
 
         // to treat the case when more than one condition satisfies
-        if( ( ( upafter > 0 ) && ( last > 0 ) )
-         && ( upafter != last ) )
+        if( ( ( upafter > 0 ) && ( last > 0 ) ) && ( upafter != last ) && (n%256 != 0) && (n%256 != 255) )
         {
           if( upafter > last ) {
             correctlabel = last; wronglabel = upafter; wrongindex = col + 1 + 256 * ( row - 1 );
@@ -186,8 +189,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
           pixelLabel[n] = correctlabel;
         }
 
-        else if( ( ( upafter > 0 ) && ( uplast > 0 ) )
-             &&  ( upafter != uplast ) )
+        else if( ( ( upafter > 0 ) && ( uplast > 0 ) ) && ( upafter != uplast ) && (n%256 != 0) && (n%256 != 255) )
         {
           if( upafter > uplast ) {
             correctlabel = uplast; wronglabel = upafter; wrongindex = col + 1 + 256 * ( row - 1 );
@@ -206,8 +208,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
           pixelLabel[n] = correctlabel;
         }
 
-        else if( ( ( upafter > 0 ) && ( up > 0 ) )
-             &&  ( upafter != up ) )
+        else if( ( ( upafter > 0 ) && ( up > 0 ) ) && ( upafter != up ) && (n%256 != 255) )
         {
           if( upafter > up ) {
             correctlabel = up; wronglabel = upafter; wrongindex = col + 1 + 256 * ( row - 1 );
@@ -226,8 +227,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
           pixelLabel[n] = correctlabel;
         }
 
-        else if( ( ( upafter > 0 ) && ( up > 0 ) )
-             &&  ( upafter == up ) && ( pixelMerged.count( up ) > 0 ))
+        else if( ( ( upafter > 0 ) && ( up > 0 ) ) && ( upafter == up ) && ( pixelMerged.count( up ) > 0 ))
         {
           pixelLabel[col + 256 * ( row - 1 ) ]    = pixelMerged.find( up ) -> second ;
           pixelLabel[col + 1 + 256 * ( row - 1 )] = pixelMerged.find( upafter ) -> second ;
@@ -236,28 +236,28 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
       lastpixel  = actualpixel;
     }
 
-    std::map<int,int>::iterator it3=clustersMerged.begin();
-    while ( it3 != clustersMerged.end() )
+    std::map<int,int>::iterator it1=clustersMerged.begin();
+    while ( it1 != clustersMerged.end() )
     {
-      if( clusterTOT.count( it3->second ) != 0 )
+      if( clusterTOT.count( it1->second ) != 0 )
       {
-        clusterTOT[it3->first]  += clusterTOT[it3->second];
-        clusterTOT.erase( it3->second );
+        clusterTOT[it1->first]  += clusterTOT[it1->second];
+        clusterTOT.erase( it1->second );
 
-        clusterSize[it3->first] += clusterSize[it3->second];
-        clusterSize.erase( it3->second );
+        clusterSize[it1->first] += clusterSize[it1->second];
+        clusterSize.erase( it1->second );
       }
-      ++it3;
+      ++it1;
     }
 
     if( frameCounter%1 == 0 ){ cout << "Frame number: " << frameCounter << "\tNumber of clusters: " << clusterTOT.size() << '\n'; }
 
-    std::map<int,int>::iterator it1=clusterTOT.begin();
-    std::map<int,int>::iterator it2=clusterSize.begin();
-    while ( it1 != clusterTOT.end() )
+    std::map<int,int>::iterator it2=clusterTOT.begin();
+    std::map<int,int>::iterator it3=clusterSize.begin();
+    while ( it2 != clusterTOT.end() )
     {
-      clustersizekeep   =  it2->second;
-      clusterchargekeep =  it1->second;
+      clusterchargekeep =  it2->second;
+      clustersizekeep   =  it3->second;
 
       if( clustersizekeep == 1 ){ singlepixelhistogram -> Fill( clusterchargekeep );
       } else{ multipixelhistogram -> Fill( clusterchargekeep ); }
@@ -266,26 +266,22 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
       clustersizehistogram  -> Fill( clustersizekeep );
       pixelchargehist       -> Fill( clusterchargekeep, clustersizekeep );
 
-      ++it1;  ++it2;
+      ++it2;  ++it3;
     }
     clusterperframehisto  -> Fill( clusterTOT.size() );
 
-    std::map<int,int>::iterator it6=pixelLabel.begin();
-    while ( it6 != pixelLabel.end() )
+    while( correction != 0 )
     {
-      if( pixelMerged.count( it6->second ) != 0 )
-      {
-        pixelLabel[it6->first] = pixelMerged.find( it6->second )->second;
-      }
-      ++it6;
+      correction = mapiterator( pixelLabel, pixelMerged );
     }
+    correction = 1;
 
-    std::map<int,int>::iterator it7=ipixelTOT.begin();
-    while ( it7 != ipixelTOT.end() )
+    std::map<int,int>::iterator it4=ipixelTOT.begin();
+    while ( it4 != ipixelTOT.end() )
     {
-      //myfile << Form( " i= %d\tj = %d\tlabel = %d\tsize = %d\tiTOT = %d\tTOT = %d \n", clusterIndexI[it7->first], clusterIndexJ[it7->first], pixelLabel[it7->first], clusterSize[pixelLabel[it7->first]], it7->second, clusterTOT[pixelLabel[it7->first]] );
-      myfile << Form( "%d\t%d\t%d\t%d\t%d\t%d\t%d\n", frameCounter, clusterIndexI[it7->first], clusterIndexJ[it7->first], pixelLabel[it7->first], clusterSize[pixelLabel[it7->first]], it7->second, clusterTOT[pixelLabel[it7->first]] );
-      ++it7;
+      outfirst = it4->first; outsecond = it4->second; outpixlabel = pixelLabel[outfirst];
+      myfile << Form( "%d\t%d\t%d\t%d\t%d\t%d\t%d\n", frameCounter, clusterIndexI[outfirst], clusterIndexJ[outfirst], pixelLabel[outfirst], clusterSize[outpixlabel], outsecond, clusterTOT[outpixlabel] );
+      ++it4;
     }
 
     pixelLabel.clear();
@@ -297,7 +293,6 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
     clusterIndexJ.clear();
     ipixelTOT.clear();
   }
-
   TProfile* pixelchargehistprofile = pixelchargehist -> ProfileX();
 
   clusteringHistos -> Write();
@@ -305,4 +300,25 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
 
   fclose( file );
   free( frame );
+
+  time_t end = time(NULL);
+  cout << "Elapsed time: " << (double)(end-start) << " seconds\n";
+}
+
+int mapiterator( std::map<int, int> &map1, std::map<int, int> &map2 )
+{
+  int endcondition = 0;
+
+  std::map<int,int>::iterator it5=map1.begin();
+  while ( it5 != map1.end() )
+  {
+    if( map2.count( it5->second ) != 0 )
+    {
+      map1[it5->first] = map2.find( it5->second )->second;
+    }
+    if( map2.count( map1[it5->first] ) != 0 ){ endcondition +=1; }
+    ++it5;
+  }
+
+  return endcondition;
 }
