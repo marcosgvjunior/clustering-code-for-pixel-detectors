@@ -18,7 +18,7 @@
 
 void readBinMatrix( char* inputFile, int totalFrameNumber );
 
-void readBinMatrix( char* inputFile, int totalFrameNumber )
+void readBinMatrix( char* inputFile, int totalFrameNumber, int frameSetSize )
 {
   time_t start = time(NULL);
 
@@ -48,7 +48,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
   unsigned short *frame;
 
   // allocate memory for one frame
-  frame = ( unsigned short * )malloc( sizeof( unsigned short )*256*256 );
+  frame = ( unsigned short * )malloc( sizeof( unsigned short )*frameSetSize*256*256 );
 
   // reading in sequency
   int col = 0, row = 0;
@@ -70,7 +70,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
   std::map<int, int> pixelMerged;
 
   // total number of pixels
-  int npixels    = 256*256;
+  int npixels    = frameSetSize*256*256;
 
   int wronglabel = 0, correctlabel = 0, wrongindex = 0;
   int uplast     = 0, up           = 0, upafter    = 0, last = 0;
@@ -78,7 +78,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
   for( int frameCounter = 0; frameCounter < totalFrameNumber; frameCounter++ )
   {
     //reading one frame into buffer
-    fread( frame, sizeof( unsigned short )*256*256, 1, file );
+    fread( frame, sizeof( unsigned short )*frameSetSize*256*256, 1, file );
 
     for( int n = 0; n < npixels; n++ )
     {
@@ -102,7 +102,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
           frame[n]             = 0;
         }
 
-        else if( (uplast > 0) && (n%256 != 0) )
+        else if( (uplast > 0) && (n%256 != 0) && (row%256 != 0) )
         {
           pixelLabel[n]        = uplast;
           clusterTOT[uplast]  += dePixel;
@@ -110,7 +110,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
           frame[n]             = 0;
         }
 
-        else if( up > 0  )
+        else if( ( up > 0 ) && (row%256 != 0) )
         {
           pixelLabel[n]         = up;
           clusterTOT[up]       += dePixel;
@@ -118,7 +118,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
           frame[n]              = 0;
         }
 
-        else if( (upafter > 0) && (n%256 != 255) )
+        else if( (upafter > 0) && (n%256 != 255) && (row%256 != 0) )
         {
           pixelLabel[n]         = upafter;
           clusterTOT[upafter]  += dePixel;
@@ -135,7 +135,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
         }
 
         // to treat the case when more than one condition satisfies
-        if( ( ( upafter > 0 ) && ( last > 0 ) ) && ( upafter != last ) && (n%256 != 0) && (n%256 != 255) )
+        if( ( ( upafter > 0 ) && ( last > 0 ) ) && ( upafter != last ) && (n%256 != 0) && (n%256 != 255) && (row%256 != 0) )
         {
           if( upafter > last ) {
             correctlabel = last; wronglabel = upafter; wrongindex = col + 1 + 256 * ( row - 1 );
@@ -154,7 +154,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
           pixelLabel[n] = correctlabel;
         }
 
-        else if( ( ( upafter > 0 ) && ( uplast > 0 ) ) && ( upafter != uplast ) && (n%256 != 0) && (n%256 != 255) )
+        else if( ( ( upafter > 0 ) && ( uplast > 0 ) ) && ( upafter != uplast ) && (n%256 != 0) && (n%256 != 255) && (row%256 != 0) )
         {
           if( upafter > uplast ) {
             correctlabel = uplast; wronglabel = upafter; wrongindex = col + 1 + 256 * ( row - 1 );
@@ -173,7 +173,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
           pixelLabel[n] = correctlabel;
         }
 
-        else if( ( ( upafter > 0 ) && ( up > 0 ) ) && ( upafter != up ) && (n%256 != 255) )
+        else if( ( ( upafter > 0 ) && ( up > 0 ) ) && ( upafter != up ) && (n%256 != 255) && (row%256 != 0) )
         {
           if( upafter > up ) {
             correctlabel = up; wronglabel = upafter; wrongindex = col + 1 + 256 * ( row - 1 );
@@ -192,7 +192,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
           pixelLabel[n] = correctlabel;
         }
 
-        else if( ( ( upafter > 0 ) && ( up > 0 ) ) && ( upafter == up ) && ( pixelMerged.count( up ) > 0 ))
+        else if( ( ( upafter > 0 ) && ( up > 0 ) ) && ( upafter == up ) && ( pixelMerged.count( up ) > 0 ) && (row%256 != 0))
         {
           pixelLabel[col + 256 * ( row - 1 ) ]    = pixelMerged.find( up )      -> second ;
           pixelLabel[col + 1 + 256 * ( row - 1 )] = pixelMerged.find( upafter ) -> second ;
