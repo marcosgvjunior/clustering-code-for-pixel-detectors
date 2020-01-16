@@ -14,11 +14,12 @@
 #include "TH2D.h"
 #include "TH1F.h"
 
-#define MAX_NAME 100
+#define MAX_NAME  100
 
-void readBinMatrix( char* inputFile, int totalFrameNumber );
+void   readBinMatrix( char* inputFile, int totalFrameNumber, bool flag, double a, double b );
+double calibration( int tot, double a, double b );
 
-void readBinMatrix( char* inputFile, int totalFrameNumber )
+void readBinMatrix( char* inputFile, int totalFrameNumber, bool flag, double a, double b )
 {
   time_t start = time(NULL);
 
@@ -32,15 +33,26 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
 
   // output file
   char *filename = new char[ MAX_NAME ];
-  sprintf( filename, "clustering_%s.root", str );
-  TFile *clusteringHistos = new TFile( filename, "RECREATE" );
+  if( flag == false )
+  {
+    sprintf( filename, "clustering_%s.root", (str).c_str() );
+    TFile *clusteringHistos     = new TFile( filename, "RECREATE" );
+    TH1F *multipixelhistogram   = new TH1F( "multipixelhistogram",  "multipixel Histogram",  10000, 0, 10000 );
+    TH1F *singlepixelhistogram  = new TH1F( "singlepixelhistogram", "singlepixel Histogram", 10000, 0, 10000 );
+    TH1F *allnpixelshistogram   = new TH1F( "allnpixelshistogram",  "All pixel Histogram",   10000, 0, 10000 );
+  }
+  else
+  {
+    sprintf( filename, "clustering_%s_keV.root", (str).c_str() );
+    TFile *clusteringHistos     = new TFile( filename, "RECREATE" );
+    TH1F *multipixelhistogram   = new TH1F( "multipixelhistogram",  "multipixel Histogram",  1000, 0, 1000 );
+    TH1F *singlepixelhistogram  = new TH1F( "singlepixelhistogram", "singlepixel Histogram", 1000, 0, 1000 );
+    TH1F *allnpixelshistogram   = new TH1F( "allnpixelshistogram",  "All pixel Histogram",   1000, 0, 1000 );
+  }
 
   // histograms
-  TH1F *multipixelhistogram   = new TH1F( "multipixelhistogram",  "multipixel Histogram",  10000, 0, 10000 );
-  TH1F *singlepixelhistogram  = new TH1F( "singlepixelhistogram", "singlepixel Histogram", 10000, 0, 10000 );
-  TH1F *allnpixelshistogram   = new TH1F( "allnpixelshistogram",  "All pixel Histogram",   10000, 0, 10000 );
   TH1F *clustersizehistogram  = new TH1F( "clustersizehistogram", "All pixel Histogram",     100, 0,   100 );
-  TH1F *clusterperframehisto  = new TH1F( "clusterperframehisto", "All pixel Histogram",     400, 0,   400 );
+  TH1F *clusterperframehisto  = new TH1F( "clusterperframehisto", "All pixel Histogram",     200, 0,   400 );
   TH2D *pixelchargehist       = new TH2D( "pixelchargehist",      "nPixels x De",          10000, 0, 10000, 100, 0, 100 );
   TH2D *AllClustFrame         = new TH2D(  "AllClustFrame",       "Pixel Matrix",            256, 0,   255, 256, 0, 255 );
 
@@ -55,6 +67,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
 
   // last pixel TOT/energy
   int lastpixel = 0, dePixel = 0, clustersizekeep = 0, clusterchargekeep = 0;
+  double deposit = 0;
 
   // map for pixel and cluster's label
   std::map<int, int> pixelLabel;
@@ -88,6 +101,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
       {
         col     = ( n%256 );
         row     = floor( n/256 );
+        deposit = int(calibration( dePixel, a, b )*1e+6);
 
         up      = pixelLabel[ col + 256 * ( row - 1 ) ];      uplast = pixelLabel[ col - 1 + 256 * ( row - 1 ) ];
         upafter = pixelLabel[ col + 1 + 256 * ( row - 1 ) ];  last   = pixelLabel[n-1];
@@ -97,7 +111,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
         if( (lastpixel != 0) && (n%256 != 0) )
         {
           pixelLabel[n]        = last;
-          clusterTOT[last]    += dePixel;
+          clusterTOT[last]    += deposit;
           clusterSize[last]   += 1;
           frame[n]             = 0;
         }
@@ -105,7 +119,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
         else if( (uplast > 0) && (n%256 != 0) )
         {
           pixelLabel[n]        = uplast;
-          clusterTOT[uplast]  += dePixel;
+          clusterTOT[uplast]  += deposit;
           clusterSize[uplast] += 1;
           frame[n]             = 0;
         }
@@ -113,7 +127,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
         else if( up > 0  )
         {
           pixelLabel[n]         = up;
-          clusterTOT[up]       += dePixel;
+          clusterTOT[up]       += deposit;
           clusterSize[up]      += 1;
           frame[n]              = 0;
         }
@@ -121,7 +135,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
         else if( (upafter > 0) && (n%256 != 255) )
         {
           pixelLabel[n]         = upafter;
-          clusterTOT[upafter]  += dePixel;
+          clusterTOT[upafter]  += deposit;
           clusterSize[upafter] += 1;
           frame[n]              = 0;
         }
@@ -129,7 +143,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
         else
         {
           pixelLabel[n]                     = ( col + 256 * row );
-          clusterTOT[( col + 256 * row )]  += dePixel;
+          clusterTOT[( col + 256 * row )]  += deposit;
           clusterSize[( col + 256 * row )] += 1;
           frame[n]                          = 0;
         }
@@ -215,14 +229,14 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
       ++it1;
     }
 
-    if( frameCounter%1 == 0 ){ cout << "Frame number: " << frameCounter << "\tNumber of clusters: " << clusterTOT.size() << '\n'; }
+    if( frameCounter%500 == 0 ){ cout << "Frame number: " << frameCounter << "\tNumber of clusters: " << clusterTOT.size() << '\n'; }
 
     std::map<int,int>::iterator it2 = clusterTOT.begin();
     std::map<int,int>::iterator it3 = clusterSize.begin();
     while ( it2 != clusterTOT.end() )
     {
-      clusterchargekeep =  it2->second;
-      clustersizekeep   =  it3->second;
+      clusterchargekeep =  (it2->second)/(1.0*1e+6);
+      clustersizekeep   =   it3->second;
 
       if( clustersizekeep == 1 ){ singlepixelhistogram -> Fill( clusterchargekeep );
       } else{ multipixelhistogram -> Fill( clusterchargekeep ); }
@@ -252,3 +266,5 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
   time_t end = time(NULL);
   cout << "Elapsed time: " << (double)(end-start) << " seconds\n";
 }
+
+double calibration( int tot, double a, double b ){ return a*tot + b; }
