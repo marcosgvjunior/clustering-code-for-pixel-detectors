@@ -32,7 +32,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
 
   // output file
   char *filename = new char[ MAX_NAME ];
-  sprintf( filename, "clustering_%s.root", str );
+  sprintf( filename, "clustering_%s.root", (str).c_str() );
   TFile *clusteringHistos = new TFile( filename, "RECREATE" );
 
   // histograms
@@ -173,7 +173,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
           pixelLabel[n] = correctlabel;
         }
 
-        else if( ( ( upafter > 0 ) && ( up > 0 ) ) && ( upafter != up ) && (n%256 != 255) )
+        else if( ( ( upafter > 0 ) && ( up > 0 ) ) && ( upafter != up ) && ( n%256 != 255 ) )
         {
           if( upafter > up ) {
             correctlabel = up; wronglabel = upafter; wrongindex = col + 1 + 256 * ( row - 1 );
