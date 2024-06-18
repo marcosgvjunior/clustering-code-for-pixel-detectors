@@ -3,15 +3,15 @@
 ## Description
 
 ### Overview
-This repository contains clustering code for pixel detectors used in particle physics. The primary goal is to implement algorithms for clustering pixels in detector data, improving the analysis and understanding of particle detection. This code is particularly relevant for applications in radiotherapy, where precise knowledge of energy spectra is crucial.
+This repository contains clustering code for pixel detectors used in particle physics. The primary goal is to implement algorithms for clustering pixels in detector data, improving the analysis and understanding of particle interactions and energy deposition. This code can be used for applications in radiotherapy, where precise knowledge of energy spectra is crucial.
 
 ### Features and Applications
 - Efficient clustering of pixel data.
 - Applicable in particle physics and radiotherapy.
-- Supports multiple frame clustering.
+- Supports multiple simultaneous frame clustering.
 - Energy calibration implementation.
 - Output in both ROOT files and tabular text format.
-- Generation of descriptive histograms and graphical analysis.
+- Generation of histograms and other descriptive graphical analysis.
 
 For a detailed description of the methodology and application, refer to [link](https://www.if.ufrj.br/wp-content/uploads/2020/11/Dissertacao_Marcos_Vieira_IF_FisAplic_UFRJ_final_ficha.pdf).
 
@@ -26,16 +26,16 @@ For a detailed description of the methodology and application, refer to [link](h
 - **clusteringmacro.C**: Macro file to run the clustering code.
 
 ### Directories
-- **input/**: Directory containing input data files, typically in `.tpx` format.
-- **output/**: Directory where the output files, such as ROOT files and text files, are saved.
+- **input/**: Directory containing input data files, e.g. a `.tpx` file.
+- **output/**: Directory where the output files, such as ROOT and text files, are saved.
 
 ## Usage
 
 ### Input
-The input data consists of pixel detector readings, typically provided in `.tpx` file format.
+The input data consists of pixel detector readings, e.g. a `.tpx` file.
 
 ### Output
-The output is a set of clustered pixel data, which can be further analyzed or visualized. The output format varies depending on the clustering function used, with options for ROOT files and text files.
+The output is a set of clustered pixel data, which can be further analyzed or visualized. The output format varies depending on the selected clustering function, with options for ROOT and text files.
 
 ### Example
 To use the clustering code, follow these steps:
@@ -48,7 +48,7 @@ To use the clustering code, follow these steps:
 
 4. **Unzip the example `input/cs137.zip`:** This will extract `cs137.tpx` file to use in the code.
 
-5. **Comment/Uncomment the selected code in the macro `clusteringmacro.C`** to choose the desired clustering method.
+5. **Comment/Uncomment the selected code in the macro `clusteringmacro.C`** to choose the desired clustering code.
 
 6. **Run the `clusteringmacro.C` macro:**
     ```sh
