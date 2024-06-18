@@ -1,9 +1,3 @@
-//Institute of Physics - Federal University of Rio de Janeiro
-//Interdisciplinary Academic Master's Degree in Applied Physics
-//Student: Marcos Vieira
-//October, 2019
-//Working on ROOT 5.34/36, Windows 10 x64
-
 #include <stdio.h>
 #include <map>
 #include <string>
@@ -11,8 +5,8 @@
 #include <time.h>
 
 // ROOT
-#include "TH2D.h"
-#include "TH1F.h"
+// #include "TH2D.h"
+// #include "TH1F.h"
 
 #define MAX_NAME 100
 
@@ -27,10 +21,10 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
 
   std::string str = inputFile;
   str = str.substr(0,str.length()-4);
-  str = str.erase(0,3);
+  str = str.erase(0,6);
 
   char *outfilename = new char[ MAX_NAME ];
-  sprintf( outfilename,   "clustering_%s.dat", str );
+  sprintf( outfilename,   "output/clustering_%s_write.dat", (str).c_str() );
   myfile.open( outfilename, ios::out );
 
   myfile << Form( "frame\ti\tj\tlabel\tsize\tiTOT\tTOT\n" );
@@ -41,7 +35,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
 
   // output file
   char *filename = new char[ MAX_NAME ];
-  sprintf( filename, "clustering_%s.root", str );
+  sprintf( filename, "output/clustering_%s_write.root", (str).c_str() );
   TFile *clusteringHistos = new TFile( filename, "RECREATE" );
 
   // histograms
@@ -88,7 +82,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
 
   int wronglabel = 0, correctlabel = 0, wrongindex = 0;
   int uplast     = 0, up           = 0, upafter    = 0, last        = 0;
-  int correction = 1; outfirst     = 0, outsecond  = 0, outpixlabel = 0;
+  int correction = 1, outfirst     = 0, outsecond  = 0, outpixlabel = 0;
 
   for( int frameCounter = 0; frameCounter < totalFrameNumber; frameCounter++ )
   {
@@ -250,7 +244,7 @@ void readBinMatrix( char* inputFile, int totalFrameNumber )
       ++it1;
     }
 
-    if( frameCounter%1 == 0 ){ cout << "Frame number: " << frameCounter << "\tNumber of clusters: " << clusterTOT.size() << '\n'; }
+    if( frameCounter%100 == 0 ){ cout << "Frame number: " << frameCounter << "\tNumber of clusters: " << clusterTOT.size() << '\n'; }
 
     std::map<int,int>::iterator it2=clusterTOT.begin();
     std::map<int,int>::iterator it3=clusterSize.begin();
